@@ -1,0 +1,34 @@
+{
+  "mode": "safe-hosted",
+  "autoReply": true,
+  "tierPolicy": {
+    "L1": "auto",
+    "L2": "review",
+    "L3": "block"
+  },
+  "ops": {
+    "checkIntervalMinutes": 30,
+    "dailySummaryAt": "21:30",
+    "midSummaryAfterHours": 12
+  },
+  "relayRecovery": {
+    "enabled": true,
+    "maxAutoRetries": 1,
+    "onFailureNotify": true,
+    "notifyCooldownMinutes": 30,
+    "reconnectChecklist": [
+      "openclaw gateway restart",
+      "open target tab in Chrome",
+      "click OpenClaw Relay to ON"
+    ]
+  },
+  "status": "running",
+  "progress": {
+    "phase": "learning-and-hardening",
+    "lastAction": "created openclaw-enhancement-playbook v1",
+    "learningItemsProcessed": 18,
+    "activeExperiment": "xhs-low-speed-proactive-engagement",
+    "dailyExternalInteractionLimit": 5
+  },
+  "updatedAt": "2026-02-22T00:15:00+08:00"
+}

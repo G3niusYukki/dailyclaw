@@ -1,0 +1,59 @@
+{
+  "daysToLookBack": 90,
+  "maxResults": 500,
+  "excludePatterns": [
+    "noreply@",
+    "no-reply@",
+    "newsletter@",
+    "marketing@",
+    "unsubscribe",
+    "mailer-daemon@",
+    "postmaster@",
+    "donotreply@",
+    "notification@",
+    "alert@",
+    "automated@"
+  ],
+  "highValueKeywords": [
+    "project",
+    "合作",
+    "项目",
+    "meeting",
+    "会议",
+    "contract",
+    "合同",
+    "proposal",
+    "方案",
+    "investment",
+    "投资",
+    "partnership",
+    "伙伴",
+    "startup",
+    "创业",
+    "business",
+    "业务"
+  ],
+  "personalEmailDomains": [
+    "gmail.com",
+    "outlook.com",
+    "hotmail.com",
+    "yahoo.com",
+    "icloud.com",
+    "foxmail.com",
+    "qq.com",
+    "163.com",
+    "126.com",
+    "sina.com",
+    "sohu.com"
+  ],
+  "valueScoreWeights": {
+    "personalEmail": 2,
+    "companyEmail": 1,
+    "interactionMultiplier": 0.5,
+    "maxInteractionScore": 3,
+    "highValueContent": 2,
+    "projectKeywords": 1,
+    "recentContact": 1,
+    "staleContact": -1
+  }
+}

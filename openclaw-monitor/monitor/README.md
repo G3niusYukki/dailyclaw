@@ -117,6 +117,11 @@ python3 ./monitor/scripts/task_upsert.py \
 - `OPENCLAW_HOME`：OpenClaw 主目录（默认 `~/.openclaw`）
 - `MONITOR_PORT`：server 端口（默认 `8793`）
 
+## 服务脚本说明
+- `./start_monitor.sh`：刷新一次数据并启动 monitor 服务
+- `./stop_monitor.sh`：停止 monitor 服务（按端口查找监听进程）
+- `./restart_monitor.sh`：先停后启，快速重启
+
 ## 数据真实性说明（零 Mock）
 - 面板不使用随机/伪造指标。
 - 代码变化全部来自本地真实 git 命令。

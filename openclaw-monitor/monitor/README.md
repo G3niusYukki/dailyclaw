@@ -124,6 +124,18 @@ python3 ./monitor/scripts/task_upsert.py \
 - `./stop_monitor.sh`：停止 monitor 服务（按端口查找监听进程）
 - `./restart_monitor.sh`：先停后启，快速重启
 
+## Zeus 自动派单器
+- 内置在 `monitor/scripts/refresh_status.py`。
+- 每次刷新前会扫描 `task_ledger.json` 中 `status=TODO` 的任务：
+  - 若 `agent_id` 为 `zeus / main / unassigned / 空`，则按关键词自动分配到 Olympus 成员。
+  - 规则示例：
+    - 架构/评审 → `athena`
+    - 开发/实现/重构 → `hephaestus`
+    - 测试/验收/回归 → `apollo`
+    - 调度/同步/通知 → `hermes`
+    - 发布/回滚/稳定性 → `artemis`
+- 分配结果写回台账 `meta.assigned_by=zeus-auto-dispatcher`。
+
 ## 数据清理说明
 - 已移除外部 OpenClaw 环境遗留的示例任务数据。
 - 当前默认数据全部基于本机路径与本地台账生成。

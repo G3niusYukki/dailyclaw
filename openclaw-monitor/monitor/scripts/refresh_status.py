@@ -95,6 +95,75 @@ def atomic_write_json(path: Path, payload: dict) -> None:
     os.replace(tmp, path)
 
 
+def _dispatch_target(task_content: str, duty: str) -> str:
+    text = f"{task_content} {duty}".lower()
+
+    rules = [
+        ('athena', ['架构', '设计', '评审', 'review', 'architecture', 'design']),
+        ('apollo', ['测试', '验收', '回归', 'quality', 'qa', 'test']),
+        ('artemis', ['发布', '上线', '回滚', '运维', '稳定', 'deploy', 'release', 'rollback']),
+        ('hermes', ['调度', '同步', '派单', '汇总', '通知', 'schedule', 'sync', 'dispatch']),
+        ('hephaestus', ['开发', '实现', '重构', '脚本', '代码', 'develop', 'implement', 'refactor', 'code']),
+    ]
+
+    for agent_id, keywords in rules:
+        if any(k in text for k in keywords):
+            return agent_id
+    return 'hephaestus'
+
+
+def zeus_auto_dispatch_ledger() -> int:
+    """将台账中 TODO 任务自动分配给对应神话 Agent。返回分配数量。"""
+    data = load(LEDGER, {})
+    rows = data.get('tasks') if isinstance(data, dict) and isinstance(data.get('tasks'), list) else []
+    if not rows:
+        return 0
+
+    changed = 0
+    now_iso = NOW().isoformat(timespec='seconds')
+    reassign_from = {'', 'unassigned', 'main', 'zeus'}
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        status = str(row.get('status') or '').upper().strip()
+        if status != 'TODO':
+            continue
+
+        aid = str(row.get('agent_id') or '').strip().lower()
+        if aid not in reassign_from:
+            continue
+
+        task_content = str(row.get('task_content') or row.get('task_id') or '')
+        duty = str(row.get('duty') or '')
+        target = _dispatch_target(task_content, duty)
+
+        row['agent_id'] = target
+        row['owner_cn'] = {
+            'zeus': 'Zeus',
+            'athena': 'Athena',
+            'hephaestus': 'Hephaestus',
+            'apollo': 'Apollo',
+            'hermes': 'Hermes',
+            'artemis': 'Artemis',
+        }.get(target, target)
+        row.setdefault('meta', {})
+        if isinstance(row['meta'], dict):
+            row['meta']['assigned_by'] = 'zeus-auto-dispatcher'
+            row['meta']['assigned_at'] = now_iso
+            row['meta']['dispatch_rule'] = 'keyword-routing'
+        row['updated_at'] = now_iso
+        changed += 1
+
+    if changed > 0:
+        data['generated_at'] = now_iso
+        data['source'] = 'task_upsert+zeus_dispatcher'
+        data['tasks'] = rows
+        atomic_write_json(LEDGER, data)
+
+    return changed
+
+
 def pid_alive(pid: int) -> bool:
     try:
         os.kill(pid, 0)
@@ -419,6 +488,7 @@ def merge_tasks(realtime_tasks: list[dict], ledger_tasks: list[dict]) -> list[di
 
 
 def main():
+    dispatched = zeus_auto_dispatch_ledger()
     realtime_tasks = build_realtime_tasks()
     ledger_tasks = load_ledger_tasks()
     tasks = merge_tasks(realtime_tasks, ledger_tasks)
@@ -434,7 +504,7 @@ def main():
     for rp in repos:
         snaps[rp] = repo_snapshot(rp)
     atomic_write_json(CODE, {'generated_at': NOW().isoformat(timespec='seconds'), 'task_count': len(tasks), 'repo_count': len(snaps), 'snapshots': snaps})
-    print('Updated realtime tasks/code snapshots')
+    print(f'Updated realtime tasks/code snapshots (zeus_dispatched={dispatched})')
 
 
 if __name__ == '__main__':

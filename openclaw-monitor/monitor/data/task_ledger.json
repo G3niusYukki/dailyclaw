@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-03-03T18:00:00+08:00",
-  "source": "local-real-workflow",
+  "generated_at": "2026-03-03T18:03:06+08:00",
+  "source": "task_upsert+zeus_dispatcher",
   "tasks": [
     {
       "task_id": "OLYMPUS-MON-001",
@@ -73,6 +73,23 @@
       "blockers": "等待体系文档完成",
       "repo_path": "/Users/peterzhang/.openclaw/workspace/openclaw-monitor",
       "updated_at": "2026-03-03T18:00:00+08:00"
+    },
+    {
+      "task_id": "OLYMPUS-MON-006",
+      "agent_id": "apollo",
+      "owner_cn": "Zeus",
+      "duty": "总指挥与优先级裁决",
+      "status": "TODO",
+      "task_content": "执行 monitor 回归测试并更新验收结论",
+      "eta": "15分钟",
+      "blockers": "无",
+      "repo_path": "/Users/peterzhang/.openclaw/workspace/openclaw-monitor",
+      "updated_at": "2026-03-03T18:03:06+08:00",
+      "meta": {
+        "assigned_by": "zeus-auto-dispatcher",
+        "assigned_at": "2026-03-03T18:03:06+08:00",
+        "dispatch_rule": "keyword-routing"
+      }
     }
   ]
 }

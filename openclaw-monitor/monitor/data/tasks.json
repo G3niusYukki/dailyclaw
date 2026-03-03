@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-03T18:01:12+08:00",
+  "generated_at": "2026-03-03T18:03:52+08:00",
   "source": "realtime lock+sessions + task_ledger",
   "tasks": [
     {
@@ -112,6 +112,26 @@
       "last_status_change": "2026-03-03T18:00:00+08:00"
     },
     {
+      "task_id": "OLYMPUS-MON-006",
+      "agent_id": "apollo",
+      "title": "执行 monitor 回归测试并更新验收结论",
+      "owner": "Zeus",
+      "owner_cn": "Zeus",
+      "duty": "总指挥与优先级裁决",
+      "repo_path": "/Users/peterzhang/.openclaw/workspace/openclaw-monitor",
+      "status": "TODO",
+      "goal": "-",
+      "progress": null,
+      "progress_source": "unknown",
+      "progress_confidence": "unknown",
+      "evidence_ref": null,
+      "task_content": "执行 monitor 回归测试并更新验收结论",
+      "blockers": "无",
+      "eta": "15分钟",
+      "acceptance_criteria": [],
+      "last_status_change": "2026-03-03T18:03:06+08:00"
+    },
+    {
       "task_id": "LIVE-zeus",
       "agent_id": "zeus",
       "title": "无会话",
@@ -131,7 +151,7 @@
       "acceptance_criteria": [
         "实时源=lock(pid alive)+sessions.json"
       ],
-      "last_status_change": "2026-03-03T18:01:12+08:00"
+      "last_status_change": "2026-03-03T18:03:52+08:00"
     },
     {
       "task_id": "LIVE-athena",
@@ -153,7 +173,7 @@
       "acceptance_criteria": [
         "实时源=lock(pid alive)+sessions.json"
       ],
-      "last_status_change": "2026-03-03T18:01:12+08:00"
+      "last_status_change": "2026-03-03T18:03:52+08:00"
     },
     {
       "task_id": "LIVE-hephaestus",
@@ -175,7 +195,7 @@
       "acceptance_criteria": [
         "实时源=lock(pid alive)+sessions.json"
       ],
-      "last_status_change": "2026-03-03T18:01:12+08:00"
+      "last_status_change": "2026-03-03T18:03:52+08:00"
     },
     {
       "task_id": "LIVE-apollo",
@@ -197,7 +217,7 @@
       "acceptance_criteria": [
         "实时源=lock(pid alive)+sessions.json"
       ],
-      "last_status_change": "2026-03-03T18:01:12+08:00"
+      "last_status_change": "2026-03-03T18:03:52+08:00"
     },
     {
       "task_id": "LIVE-hermes",
@@ -219,7 +239,7 @@
       "acceptance_criteria": [
         "实时源=lock(pid alive)+sessions.json"
       ],
-      "last_status_change": "2026-03-03T18:01:12+08:00"
+      "last_status_change": "2026-03-03T18:03:52+08:00"
     },
     {
       "task_id": "LIVE-artemis",
@@ -241,7 +261,7 @@
       "acceptance_criteria": [
         "实时源=lock(pid alive)+sessions.json"
       ],
-      "last_status_change": "2026-03-03T18:01:12+08:00"
+      "last_status_change": "2026-03-03T18:03:52+08:00"
     }
   ]
 }

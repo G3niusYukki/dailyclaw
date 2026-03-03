@@ -13,6 +13,8 @@
 
 1. **需求受理（Zeus）**  
    输入需求，拆成可执行任务，写入 `task_ledger.json`。
+1.1 **自动派单（Zeus Dispatcher）**  
+   刷新脚本会自动把 `TODO` 且 `agent_id=zeus/main/unassigned` 的任务按关键词分配到对应成员。
 2. **方案评审（Athena）**  
    给出实现方案、风险、验收标准。
 3. **并行实现（Hephaestus + Hermes）**  

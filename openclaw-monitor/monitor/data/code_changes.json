@@ -1,17 +1,22 @@
 {
-  "generated_at": "2026-03-03T18:01:12+08:00",
-  "task_count": 11,
+  "generated_at": "2026-03-03T18:03:52+08:00",
+  "task_count": 12,
   "repo_count": 2,
   "snapshots": {
     "/Users/peterzhang/.openclaw/workspace": {
       "repo_path": "/Users/peterzhang/.openclaw/workspace",
       "branch": "master",
-      "tracked_files_changed": 6,
-      "untracked_files": 56,
+      "tracked_files_changed": 7,
+      "untracked_files": 54,
       "files": [
         {
           "status": "M",
           "path": "memory/xhs-auto-ops-state.json",
+          "untracked": false
+        },
+        {
+          "status": "M",
+          "path": "openclaw-monitor/monitor/OLYMPUS_WORKFLOW.md",
           "untracked": false
         },
         {
@@ -221,16 +226,6 @@
         },
         {
           "status": "??",
-          "path": "openclaw-monitor/monitor/OLYMPUS_WORKFLOW.md",
-          "untracked": true
-        },
-        {
-          "status": "??",
-          "path": "openclaw-monitor/monitor/config/",
-          "untracked": true
-        },
-        {
-          "status": "??",
           "path": "openclaw/",
           "untracked": true
         },
@@ -322,6 +317,11 @@
       ],
       "recent_commits": [
         {
+          "hash": "55e5bab",
+          "author": "Peter Zhang",
+          "subject": "feat(monitor): adopt olympus multi-agent workflow and local real data"
+        },
+        {
           "hash": "1bfd353",
           "author": "Peter Zhang",
           "subject": "docs: add dailyclaw README vision"
@@ -340,11 +340,6 @@
           "hash": "87961d9",
           "author": "Peter Zhang",
           "subject": "chore: add restart script for monitor service"
-        },
-        {
-          "hash": "5a0b45b",
-          "author": "Peter Zhang",
-          "subject": "chore: add stop script and clean monitor package artifacts"
         }
       ],
       "line_stats": {

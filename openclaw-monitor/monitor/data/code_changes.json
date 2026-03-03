@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-03-03T17:40:01+08:00",
+  "task_count": 6,
+  "repo_count": 1,
+  "snapshots": {
+    "/Users/brianzhibo/openclaw": {
+      "repo_path": "/Users/brianzhibo/openclaw",
+      "error": "not a git repository",
+      "tracked_files_changed": 0,
+      "untracked_files": 0,
+      "files": [],
+      "recent_commits": [],
+      "line_stats": {
+        "added": 0,
+        "deleted": 0
+      }
+    }
+  }
+}

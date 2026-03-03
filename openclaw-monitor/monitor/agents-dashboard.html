@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenClaw Agents 任务监控面板</title>
+  <style>
+    :root {
+      --bg: #f2f7ff;
+      --card: #ffffff;
+      --panel: #f7faff;
+      --line: #d8e6ff;
+      --line-strong: #a7c5ff;
+      --text: #12305f;
+      --muted: #5b7aaa;
+      --primary: #2f6df6;
+      --primary-soft: #e8f1ff;
+      --danger: #be3f5b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .wrap { max-width: 1280px; margin: 12px auto; padding: 0 12px; }
+    h1 { margin: 0; font-size: 22px; line-height: 1.25; }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+    }
+
+    .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .ok { color: #1f8a52; }
+    .warn { color: #be3f5b; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 8px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .segmented {
+      display: inline-flex;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--card);
+    }
+
+    .segmented button {
+      border: 0;
+      background: transparent;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .segmented button.active { background: var(--primary-soft); color: var(--primary); font-weight: 700; }
+
+    .task-list.cards {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+
+    .task-list.table {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: auto;
+      background: var(--card);
+    }
+
+    table.overview {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1080px;
+      font-size: 12px;
+    }
+
+    table.overview th,
+    table.overview td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    table.overview th {
+      position: sticky;
+      top: 0;
+      background: #f0f6ff;
+      color: var(--text);
+      z-index: 1;
+    }
+
+    table.overview tr:hover td { background: #f8fbff; }
+
+@media (max-width: 1200px) {
+      .task-list.cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .key-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .card.changed { box-shadow: 0 0 0 2px rgba(47,109,246,.22); }
+
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .title { margin: 0; font-size: 14px; font-weight: 700; }
+
+    .badge { font-size: 11px; border-radius: 999px; padding: 2px 8px; border: 1px solid var(--line); background: var(--panel); }
+    .badge.TODO { background: #eef2ff; color: #3b4d8a; border-color: #cfd8ff; }
+    .badge.DOING { background: #e8f4ff; color: #1e5ad1; border-color: #b9d5ff; }
+    .badge.DONE { background: #eafaf1; color: #1f8a52; border-color: #bce8d0; }
+    .badge.BLOCKED { background: #fff1f4; color: #be3f5b; border-color: #f3c2cf; }
+    .badge.IDLE { background: #f3f4f6; color: #4b5563; border-color: #d1d5db; }
+
+    .key-fields { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px; margin-bottom: 8px; }
+    .key-item { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px; font-size: 12px; }
+    .truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .text-btn { border: 1px solid var(--line-strong); background: var(--primary-soft); color: var(--primary); border-radius: 8px; padding: 4px 8px; font-size: 12px; cursor: pointer; }
+    .progress-wrap { margin: 6px 0 8px; }
+    .progress-label { font-size: 12px; color: var(--muted); }
+    .progress-bar { width: 100%; height: 8px; border: 1px solid var(--line); border-radius: 999px; background: #eef4ff; overflow: hidden; margin-top: 4px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #2f6df6, #5aa0ff); transition: width .3s ease; }
+    .task-content { font-size: 12px; color: var(--text); border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 6px; margin-bottom: 8px; }
+
+    .detail-panel { margin-top: 8px; border: 1px dashed var(--line); border-radius: 10px; padding: 8px; background: #fbfdff; }
+    .sticky-keys { position: sticky; top: 0; background: #fbfdff; padding-bottom: 6px; }
+
+    .repo { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 12px; color: var(--muted); }
+    .code-summary { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0; }
+    .files { max-height: 120px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 6px; }
+    .file { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: #38598a; }
+    .small { font-size: 11px; color: var(--muted); }
+    .error { color: var(--danger); font-weight: 600; }
+
+    @media (max-width: 768px) {
+      .task-list.cards, .key-fields { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>OpenClaw Agents 任务监控面板</h1>
+        <div id="meta" class="meta">加载中...</div>
+      </div>
+      <div class="controls">
+        <span class="chip">实时模式（SSE 推送）</span>
+        <span class="chip" id="rtStatus">连接中...</span>
+        <div class="segmented" role="tablist" aria-label="任务视图切换">
+          <button id="viewCards" class="active" type="button">双栏卡片</button>
+          <button id="viewTable" type="button">表格总览</button>
+          <button id="viewEmployees" type="button">员工视图</button>
+        </div>
+      </div>
+    </div>
+    <div id="totalProgress" class="controls" style="margin-bottom:8px;"></div>
+    <div id="employeeSummary" class="controls" style="margin-bottom:8px;"></div>
+    <div id="summary" class="controls" style="margin-bottom:10px;"></div>
+    <div id="taskGrid" class="task-list cards"></div>
+  </div>
+
+  <script>
+    const TASKS_URL = './data/tasks.json';
+    const CODE_URL = './data/code_changes.json';
+    const prevStatuses = new Map();
+    const detailCollapsed = new Map();
+    let latestTasks = null;
+    let latestCode = null;
+    let sseEventCount = 0;
+    let lastPushAtMs = Date.now();
+    let lastSseActivityMs = Date.now();
+    let fallbackTimer = null;
+    let sseWatchdogTimer = null;
+    let reconnectTimer = null;
+    let sseInstance = null;
+    let currentView = localStorage.getItem('oc_task_view') || 'cards';
+    const employeeStatusRank = { BLOCKED: 0, DOING: 1, TODO: 2, DONE: 3, IDLE: 4 };
+
+    function escapeHtml(s = '') {
+      return String(s).replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+
+
+    function formatDuration(ms) {
+      const total = Math.max(0, Math.floor(ms / 1000));
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const sec = total % 60;
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function parseTimeMs(value) {
+      const t = Date.parse(value || '');
+      return Number.isFinite(t) ? t : null;
+    }
+
+    function updateRealtimeIndicators() {
+      const now = Date.now();
+      document.querySelectorAll('[data-active-since]').forEach(el => {
+        const since = Number(el.getAttribute('data-active-since'));
+        if (!Number.isFinite(since) || since <= 0) {
+          el.textContent = '-';
+          return;
+        }
+        el.textContent = formatDuration(now - since);
+      });
+      const pushAge = document.getElementById('pushAge');
+      if (pushAge) pushAge.textContent = formatDuration(now - lastPushAtMs);
+    }
+
+    async function loadData() {
+      const [taskRes, codeRes] = await Promise.all([
+        fetch(TASKS_URL + '?t=' + Date.now()),
+        fetch(CODE_URL + '?t=' + Date.now()),
+      ]);
+      latestTasks = await taskRes.json();
+      latestCode = await codeRes.json();
+      lastPushAtMs = Date.now();
+      render(latestTasks, latestCode);
+    }
+
+    function detailHtml(task) {
+      return `
+        <ul>
+          <li><b>目标：</b>${escapeHtml(task.goal || '-')}</li>
+          <li><b>阻塞：</b>${escapeHtml(task.blockers || '-')}</li>
+          <li><b>最近状态变更：</b>${escapeHtml(task.last_status_change || '-')}</li>
+          <li><b>验收标准：</b>
+            <ul>${(task.acceptance_criteria || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>-</li>'}</ul>
+          </li>
+        </ul>
+      `;
+    }
+
+    function codeBlock(task, snap) {
+      const files = (snap.files || []).slice(0, 40)
+        .map(f => `<div class="file">[${escapeHtml(f.status)}] ${escapeHtml(f.path)}</div>`)
+        .join('') || '<div class="small">无文件变化</div>';
+
+      const commits = (snap.recent_commits || []).slice(0, 5)
+        .map(c => `<li>${escapeHtml(c.hash)} · ${escapeHtml(c.subject)} <span class="small">(${escapeHtml(c.author)})</span></li>`)
+        .join('') || '<li class="small">无提交记录</li>';
+
+      const lineStats = snap.line_stats || { added: 0, deleted: 0 };
+      return `
+        <div class="repo">
+          <div><b>Repo:</b> ${escapeHtml(task.repo_path || '-')} ${snap.branch ? ` · 分支: ${escapeHtml(snap.branch)}` : ''}</div>
+          ${snap.error ? `<div class="error">${escapeHtml(snap.error)}</div>` : `
+            <div class="code-summary">
+              <span>文件: <b>${(snap.tracked_files_changed ?? 0) + (snap.untracked_files ?? 0)}</b></span>
+              <span>Tracked: <b>${snap.tracked_files_changed ?? 0}</b></span>
+              <span>Untracked: <b>${snap.untracked_files ?? 0}</b></span>
+              <span>行变更: <b>+${lineStats.added} / -${lineStats.deleted}</b></span>
+            </div>
+            <details>
+              <summary>按任务查看代码明细（文件与提交）</summary>
+              <div class="files">${files}</div>
+              <details>
+                <summary>最近提交</summary>
+                <ul>${commits}</ul>
+              </details>
+            </details>
+          `}
+        </div>
+      `;
+    }
+
+
+    function toFiniteNumber(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function percentFromSummary(summary) {
+      if (!summary || typeof summary !== 'object') return null;
+      const done = toFiniteNumber(summary.passed ?? summary.done ?? summary.completed ?? summary.success ?? summary.ok);
+      const total = toFiniteNumber(summary.total ?? summary.count ?? summary.all ?? summary.items);
+      if (done == null || total == null || total <= 0) return null;
+      return Math.max(0, Math.min(100, Math.round((done / total) * 100)));
+    }
+
+    function percentFromChecklist(checklist) {
+      if (!checklist) return null;
+      if (Array.isArray(checklist)) {
+        const total = checklist.length;
+        if (total <= 0) return null;
+        let done = 0;
+        checklist.forEach(item => {
+          if (item && typeof item === 'object') {
+            const status = String(item.status || '').toUpperCase();
+            if (item.done === true || item.completed === true || status === 'DONE' || status === 'PASS') done += 1;
+          }
+        });
+        return Math.max(0, Math.min(100, Math.round((done / total) * 100)));
+      }
+      return percentFromSummary(checklist);
+    }
+
+    function normalizeEvidenceRef(raw) {
+      if (typeof raw === 'string') return raw.trim();
+      if (Array.isArray(raw)) {
+        return raw.map(v => String(v || '').trim()).filter(Boolean).join(', ');
+      }
+      if (raw && typeof raw === 'object') {
+        try {
+          return JSON.stringify(raw);
+        } catch (_) {
+          return '';
+        }
+      }
+      return '';
+    }
+
+    function trustedProgress(task) {
+      const source = String(task.progress_source || '').toLowerCase();
+      const confidence = String(task.progress_confidence || '').toLowerCase();
+      const evidenceRef = normalizeEvidenceRef(task.evidence_ref);
+      const p = Number(task.progress);
+      const hasStructuredEvidence = Boolean(evidenceRef);
+
+      if (Number.isFinite(p) && confidence === 'high' && hasStructuredEvidence) {
+        return {
+          percent: Math.max(0, Math.min(100, Math.round(p))),
+          source: source || 'structured',
+          evidenceRef,
+        };
+      }
+      return null;
+    }
+
+    function progressLabel(task) {
+      const trusted = trustedProgress(task);
+      if (trusted) return `进度：${trusted.percent}%（来源：${trusted.source}，证据：${trusted.evidenceRef}）`;
+      return '执行中（无可信百分比）';
+    }
+
+    function progressBar(task) {
+      const trusted = trustedProgress(task);
+      if (trusted) {
+        return `<div class="progress-bar"><div class="progress-fill" style="width:${trusted.percent}%"></div></div>`;
+      }
+      const doing = String(task.status || '').toUpperCase() === 'DOING';
+      return doing
+        ? `<div class="progress-bar"><div class="progress-fill" style="width:100%;opacity:.35"></div></div>`
+        : `<div class="progress-bar"></div>`;
+    }
+
+    function renderTable(tasks, snapshots) {
+      const rows = tasks.map(task => {
+        const snap = snapshots[task.repo_path] || {};
+        const trusted = trustedProgress(task);
+        const lineStats = snap.line_stats || { added: 0, deleted: 0 };
+        const changedFiles = (snap.tracked_files_changed ?? 0) + (snap.untracked_files ?? 0);
+        return `
+          <tr>
+            <td>${escapeHtml(task.task_id || '-')}</td>
+            <td>${escapeHtml(task.owner_cn || task.owner || '-')}</td>
+            <td><span class="badge ${escapeHtml(task.status || 'IDLE')}">${escapeHtml(task.status || '-')}</span></td>
+            <td class="truncate" title="${escapeHtml(task.task_content || task.title || '-')}">${escapeHtml(task.task_content || task.title || '-')}</td>
+            <td>${escapeHtml(task.eta || '-')}</td>
+            <td>${trusted ? `${trusted.percent}% (${trusted.source})` : '-'}</td>
+            <td>${changedFiles}</td>
+            <td>+${lineStats.added || 0} / -${lineStats.deleted || 0}</td>
+            <td class="truncate" title="${escapeHtml(task.blockers || '-')}">${escapeHtml(task.blockers || '-')}</td>
+            <td>${escapeHtml(task.last_status_change || '-')}</td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <table class="overview">
+          <thead>
+            <tr>
+              <th>Task ID</th>
+              <th>负责人</th>
+              <th>状态</th>
+              <th>任务内容</th>
+              <th>ETA</th>
+              <th>进度</th>
+              <th>变更文件</th>
+              <th>行变更</th>
+              <th>阻塞</th>
+              <th>最近状态变更</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function renderCards(tasks, snapshots) {
+      return tasks.map(task => {
+        const snap = snapshots[task.repo_path] || {};
+        const old = prevStatuses.get(task.task_id);
+        const changed = old && old !== task.status;
+        prevStatuses.set(task.task_id, task.status);
+
+        const collapsed = detailCollapsed.get(task.task_id) !== false;
+        const statusSince = parseTimeMs(task.last_status_change);
+
+        return `
+          <div class="card ${changed ? 'changed' : ''}">
+            <div class="row">
+              <h3 class="title">${escapeHtml(task.task_id)} · ${escapeHtml(task.title)}</h3>
+              <span class="badge ${task.status}">${escapeHtml(task.status)}</span>
+            </div>
+
+            <div class="key-fields">
+              <div class="key-item"><b>状态</b><div class="truncate">${escapeHtml(task.status || '-')}</div></div>
+              <div class="key-item"><b>负责人</b><div class="truncate">${escapeHtml(task.owner || '-')}</div></div>
+              <div class="key-item"><b>ETA</b><div class="truncate">${escapeHtml(task.eta || '-')}</div></div>
+              <div class="key-item"><b>活跃时长</b><div class="truncate" data-active-since="${statusSince ?? ''}">--:--:--</div></div>
+            </div>
+
+            <div class="task-content"><b>员工：</b>${escapeHtml(task.owner_cn || task.owner || '-')}（${escapeHtml(task.agent_id || '-')}）<br/><b>职责：</b>${escapeHtml(task.duty || '未标注')}<br/><b>任务内容：</b>${escapeHtml(task.task_content || task.title || '-')}</div>
+            <div class="progress-wrap">
+              <div class="progress-label">${progressLabel(task)}</div>
+              ${progressBar(task)}
+            </div>
+
+            <button class="text-btn" data-task-id="${escapeHtml(task.task_id)}">${collapsed ? '展开详情' : '收起详情'}</button>
+
+            ${collapsed ? '' : `
+              <div class="detail-panel">
+                <div class="sticky-keys key-fields">
+                  <div class="key-item"><b>状态</b><div class="truncate">${escapeHtml(task.status || '-')}</div></div>
+                  <div class="key-item"><b>负责人</b><div class="truncate">${escapeHtml(task.owner || '-')}</div></div>
+                  <div class="key-item"><b>ETA</b><div class="truncate">${escapeHtml(task.eta || '-')}</div></div>
+                  <div class="key-item"><b>活跃时长</b><div class="truncate" data-active-since="${statusSince ?? ''}">--:--:--</div></div>
+                </div>
+                ${detailHtml(task)}
+              </div>
+            `}
+
+            ${codeBlock(task, snap)}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function buildEmployeeRows(tasks) {
+      const map = new Map();
+      tasks.forEach(task => {
+        const id = String(task.agent_id || task.owner || 'UNKNOWN');
+        if (!map.has(id)) {
+          map.set(id, {
+            agentId: id,
+            ownerCn: task.owner_cn || task.owner || id,
+            duty: task.duty || '-',
+            tasks: []
+          });
+        }
+        const emp = map.get(id);
+        if (!emp.ownerCn || emp.ownerCn === id) emp.ownerCn = task.owner_cn || task.owner || id;
+        if ((!emp.duty || emp.duty === '-') && task.duty) emp.duty = task.duty;
+        emp.tasks.push(task);
+      });
+
+      const employees = Array.from(map.values()).map(emp => {
+        const sortedTasks = [...emp.tasks].sort((a, b) => {
+          const ra = employeeStatusRank[(a.status || '').toUpperCase()] ?? 99;
+          const rb = employeeStatusRank[(b.status || '').toUpperCase()] ?? 99;
+          if (ra !== rb) return ra - rb;
+          const ta = new Date(a.last_status_change || 0).getTime();
+          const tb = new Date(b.last_status_change || 0).getTime();
+          return tb - ta;
+        });
+        const currentTask = sortedTasks[0] || null;
+        const currentStatus = (currentTask?.status || 'IDLE').toUpperCase();
+        const currentTitle = currentTask ? (currentTask.task_content || currentTask.title || '-') : '空闲(IDLE)';
+        const currentEta = currentTask?.eta || '-';
+        const currentBlockers = currentTask?.blockers || '-';
+        return { ...emp, sortedTasks, currentTask, currentStatus, currentTitle, currentEta, currentBlockers };
+      });
+
+      employees.sort((a, b) => {
+        const ra = employeeStatusRank[a.currentStatus] ?? 99;
+        const rb = employeeStatusRank[b.currentStatus] ?? 99;
+        if (ra !== rb) return ra - rb;
+        return String(a.ownerCn).localeCompare(String(b.ownerCn), 'zh-CN');
+      });
+
+      return employees;
+    }
+
+    function renderEmployeeTable(employees) {
+      const rows = employees.map(emp => {
+        const taskCount = emp.sortedTasks.length;
+        const current = emp.currentTask;
+        const titleText = current ? `${emp.currentTitle}` : '空闲(IDLE)';
+        const blockerText = current ? emp.currentBlockers : '空闲(IDLE)';
+        return `
+          <tr>
+            <td>${escapeHtml(emp.ownerCn || '-')}</td>
+            <td>${escapeHtml(emp.agentId || '-')}</td>
+            <td class="truncate" title="${escapeHtml(emp.duty || '-')}">${escapeHtml(emp.duty || '-')}</td>
+            <td class="truncate" title="${escapeHtml(titleText)}">${escapeHtml(titleText)}</td>
+            <td><span class="badge ${escapeHtml(emp.currentStatus || 'IDLE')}">${escapeHtml(emp.currentStatus || 'IDLE')}</span></td>
+            <td>${escapeHtml(emp.currentEta || '-')}</td>
+            <td class="truncate" title="${escapeHtml(blockerText)}">${escapeHtml(blockerText)}</td>
+            <td>${taskCount}</td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <table class="overview">
+          <thead>
+            <tr>
+              <th>员工</th>
+              <th>Agent ID</th>
+              <th>职责</th>
+              <th>当前任务</th>
+              <th>任务状态</th>
+              <th>ETA</th>
+              <th>阻塞原因</th>
+              <th>任务数</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function render(tasksData, codeData) {
+      const grid = document.getElementById('taskGrid');
+      const meta = document.getElementById('meta');
+      const summary = document.getElementById('summary');
+      const tasksRaw = tasksData.tasks || [];
+      const snapshots = codeData.snapshots || {};
+      const statusRank = { DOING: 0, BLOCKED: 1, TODO: 2, IDLE: 3, DONE: 4 };
+      const tasks = [...tasksRaw].sort((a, b) => {
+        const ra = statusRank[(a.status || '').toUpperCase()] ?? 99;
+        const rb = statusRank[(b.status || '').toUpperCase()] ?? 99;
+        if (ra !== rb) return ra - rb;
+        const ta = new Date(a.last_status_change || 0).getTime();
+        const tb = new Date(b.last_status_change || 0).getTime();
+        return tb - ta;
+      });
+
+      const employees = buildEmployeeRows(tasks);
+      const employeeCounts = employees.reduce((acc, e) => {
+        const k = (e.currentStatus || 'IDLE').toUpperCase();
+        acc[k] = (acc[k] || 0) + 1;
+        return acc;
+      }, {});
+
+      meta.textContent = `tasks.json: ${tasksData.generated_at || '-'} | code_changes.json: ${codeData.generated_at || '-'} | 任务数: ${tasks.length} | 员工数: ${employees.length}`;
+
+      const counts = tasks.reduce((acc, t) => {
+        const k = (t.status || 'OTHER').toUpperCase();
+        acc[k] = (acc[k] || 0) + 1;
+        return acc;
+      }, {});
+
+      const totalProgress = document.getElementById('totalProgress');
+      if (totalProgress) {
+        totalProgress.innerHTML = [
+          `<span class="chip">总进度计数</span>`,
+          `<span class="chip">总任务数: <b>${tasks.length}</b></span>`,
+          `<span class="chip">进行中: <b>${counts.DOING || 0}</b></span>`,
+          `<span class="chip">阻塞: <b>${counts.BLOCKED || 0}</b></span>`,
+          `<span class="chip">已完成: <b>${counts.DONE || 0}</b></span>`,
+          `<span class="chip">空闲人数: <b>${employeeCounts.IDLE || 0}</b></span>`
+        ].join('');
+      }
+
+      const employeeSummary = document.getElementById('employeeSummary');
+      if (employeeSummary) {
+        employeeSummary.innerHTML = [
+          `<span class="chip">员工状态汇总</span>`,
+          `<span class="chip">DOING人数: <b>${employeeCounts.DOING || 0}</b></span>`,
+          `<span class="chip">BLOCKED人数: <b>${employeeCounts.BLOCKED || 0}</b></span>`,
+          `<span class="chip">IDLE人数: <b>${employeeCounts.IDLE || 0}</b></span>`
+        ].join('');
+      }
+
+      const countsForStatusBar = counts;
+      summary.innerHTML = [
+        ...['DOING','DONE','BLOCKED','IDLE','TODO'].map(k => `<span class="chip">${k}: <b>${countsForStatusBar[k] || 0}</b></span>`),
+        `<span class="chip">SSE事件: <b id="eventCount">${sseEventCount}</b></span>`,
+        `<span class="chip">距上次刷新: <b id="pushAge">00:00:00</b></span>`
+      ].join('');
+
+      const cardsBtn = document.getElementById('viewCards');
+      const tableBtn = document.getElementById('viewTable');
+      const employeesBtn = document.getElementById('viewEmployees');
+      if (cardsBtn && tableBtn && employeesBtn) {
+        cardsBtn.classList.toggle('active', currentView === 'cards');
+        tableBtn.classList.toggle('active', currentView === 'table');
+        employeesBtn.classList.toggle('active', currentView === 'employees');
+      }
+
+      if (currentView === 'table') {
+        grid.className = 'task-list table';
+        grid.innerHTML = renderTable(tasks, snapshots);
+      } else if (currentView === 'employees') {
+        grid.className = 'task-list table';
+        grid.innerHTML = renderEmployeeTable(employees);
+      } else {
+        grid.className = 'task-list cards';
+        grid.innerHTML = renderCards(tasks, snapshots);
+
+        grid.querySelectorAll('.text-btn[data-task-id]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-task-id');
+            const collapsed = detailCollapsed.get(id) !== false;
+            detailCollapsed.set(id, !collapsed);
+            render(latestTasks, latestCode);
+          });
+        });
+      }
+
+      updateRealtimeIndicators();
+    }
+
+    function setRtStatus(ok, text) {
+      const el = document.getElementById('rtStatus');
+      if (!el) return;
+      el.className = `chip ${ok ? 'ok' : 'warn'}`;
+      el.textContent = text;
+    }
+
+    function bindViewSwitch() {
+      const cardsBtn = document.getElementById('viewCards');
+      const tableBtn = document.getElementById('viewTable');
+      const employeesBtn = document.getElementById('viewEmployees');
+      if (!cardsBtn || !tableBtn || !employeesBtn) return;
+      cardsBtn.addEventListener('click', () => {
+        currentView = 'cards';
+        localStorage.setItem('oc_task_view', currentView);
+        if (latestTasks && latestCode) render(latestTasks, latestCode);
+      });
+      tableBtn.addEventListener('click', () => {
+        currentView = 'table';
+        localStorage.setItem('oc_task_view', currentView);
+        if (latestTasks && latestCode) render(latestTasks, latestCode);
+      });
+      employeesBtn.addEventListener('click', () => {
+        currentView = 'employees';
+        localStorage.setItem('oc_task_view', currentView);
+        if (latestTasks && latestCode) render(latestTasks, latestCode);
+      });
+    }
+
+    function startFallbackPolling() {
+      if (!fallbackTimer) {
+        fallbackTimer = setInterval(() => loadData().catch(console.error), 5000);
+      }
+    }
+
+    function stopFallbackPolling() {
+      if (fallbackTimer) {
+        clearInterval(fallbackTimer);
+        fallbackTimer = null;
+      }
+    }
+
+    function scheduleReconnect() {
+      if (reconnectTimer) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        setupRealtime();
+      }, 1200);
+    }
+
+    function setupRealtime() {
+      if (sseInstance) {
+        try { sseInstance.close(); } catch (_) {}
+      }
+
+      const es = new EventSource('/monitor/stream');
+      sseInstance = es;
+      setRtStatus(true, '实时连接中...');
+
+      es.onopen = () => {
+        lastSseActivityMs = Date.now();
+        setRtStatus(true, '实时已连接');
+        stopFallbackPolling();
+      };
+
+      es.onmessage = () => {
+        lastSseActivityMs = Date.now();
+        sseEventCount += 1;
+        setRtStatus(true, '实时已连接');
+        stopFallbackPolling();
+        loadData().catch(console.error);
+      };
+
+      es.addEventListener('refresh_error', (evt) => {
+        lastSseActivityMs = Date.now();
+        try {
+          const payload = JSON.parse(evt.data || '{}');
+          setRtStatus(false, `刷新异常(${payload.fails || 1})，降级轮询中`);
+        } catch (_) {
+          setRtStatus(false, '刷新异常，降级轮询中');
+        }
+        startFallbackPolling();
+      });
+
+      es.onerror = () => {
+        const now = Date.now();
+        lastSseActivityMs = now;
+        setRtStatus(false, '实时抖动，自动重连+轮询');
+        startFallbackPolling();
+
+        // readyState=2 代表连接已关闭：主动重建，避免浏览器端假死在 closed 状态
+        if (es.readyState === EventSource.CLOSED) {
+          scheduleReconnect();
+        }
+      };
+
+      if (!sseWatchdogTimer) {
+        sseWatchdogTimer = setInterval(() => {
+          const staleMs = Date.now() - lastSseActivityMs;
+          if (staleMs > 20000) {
+            setRtStatus(false, 'SSE静默超时，降级轮询中');
+            startFallbackPolling();
+          }
+        }, 2000);
+      }
+    }
+
+    loadData().catch(err => {
+      document.getElementById('meta').textContent = '加载失败: ' + err;
+    });
+
+    bindViewSwitch();
+    setupRealtime();
+    setInterval(updateRealtimeIndicators, 1000);
+  </script>
+</body>
+</html>

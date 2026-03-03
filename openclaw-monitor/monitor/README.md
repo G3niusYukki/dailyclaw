@@ -5,6 +5,8 @@
 - `monitor/data/tasks.json`：任务状态与详情源数据
 - `monitor/data/code_changes.json`：代码动态快照（脚本生成）
 - `monitor/scripts/refresh_status.py`：快照刷新脚本（真实 git 数据）
+- `monitor/config/team.json`：多 Agent 编组配置（Greek Myth 命名）
+- `monitor/OLYMPUS_WORKFLOW.md`：完整协作流程说明
 
 ## 功能覆盖
 1. **任务动态状态**：支持 `TODO / DOING / DONE / BLOCKED`，并可展开查看目标、阻塞、ETA、验收标准。
@@ -110,7 +112,7 @@ python3 ./monitor/scripts/task_upsert.py \
 
 说明：
 - 建议写入后带 `--refresh`，会立即刷新 `tasks.json`，页面刷新即可看到。
-- 当某个 `agent_id` 在台账中有任务时，面板会优先展示该台账任务，避免与 `LIVE-*` 占位实时项重复。
+- 面板会同时展示台账任务与 `LIVE-*` 在线态任务：前者看业务推进，后者看 Agent 在线活跃度。
 
 ## 环境变量
 - `OC_MONITOR_ROOT`：workspace 根目录（默认自动推断）
@@ -121,6 +123,11 @@ python3 ./monitor/scripts/task_upsert.py \
 - `./start_monitor.sh`：刷新一次数据并启动 monitor 服务
 - `./stop_monitor.sh`：停止 monitor 服务（按端口查找监听进程）
 - `./restart_monitor.sh`：先停后启，快速重启
+
+## 数据清理说明
+- 已移除外部 OpenClaw 环境遗留的示例任务数据。
+- 当前默认数据全部基于本机路径与本地台账生成。
+- 若需重置，可直接编辑 `monitor/data/task_ledger.json` 后执行刷新脚本。
 
 ## 数据真实性说明（零 Mock）
 - 面板不使用随机/伪造指标。

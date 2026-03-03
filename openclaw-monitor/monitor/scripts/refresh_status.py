@@ -20,6 +20,7 @@ AGENTS_ROOT = OPENCLAW_HOME / 'agents'
 TASKS = ROOT / 'monitor/data/tasks.json'
 LEDGER = ROOT / 'monitor/data/task_ledger.json'
 CODE = ROOT / 'monitor/data/code_changes.json'
+TEAM_CONFIG = ROOT / 'monitor/config/team.json'
 
 TZ = timezone(timedelta(hours=8))
 NOW = lambda: datetime.now(TZ)
@@ -273,43 +274,55 @@ def agent_runtime(agent_id: str, active_hint: set[str] | None = None) -> dict:
     return {'active': active, 'updatedAt': newest_ts, 'label': newest_label, 'sessionFile': newest_session_file}
 
 
-def build_realtime_tasks() -> list[dict]:
+def load_team_members() -> list[dict]:
+    """优先读取 monitor/config/team.json；若缺失则回退到 openclaw.json agents 列表。"""
+    team = load(TEAM_CONFIG, {})
+    members = team.get('members') if isinstance(team, dict) else None
+    out: list[dict] = []
+
+    if isinstance(members, list) and members:
+        for m in members:
+            if not isinstance(m, dict):
+                continue
+            aid = str(m.get('agent_id') or '').strip()
+            if not aid:
+                continue
+            out.append({
+                'agent_id': aid,
+                'owner_cn': str(m.get('owner_cn') or aid),
+                'duty': str(m.get('duty') or '未定义职责'),
+                'repo_path': str(m.get('repo_path') or ROOT),
+            })
+        if out:
+            return out
+
     cfg = load(CONFIG, {})
-    now = NOW()
-    now_iso = now.isoformat(timespec='seconds')
-
-    duties = {
-        'arch': '架构与技术审查',
-        'daoyang': '采购物流与成本',
-        'feiyangyang': '后端开发与API实现',
-        'huayangyang': '产品设计与UX',
-        'manyangyang': '总审查与质量把关',
-        'meiyangyang': '前端与平台实现',
-        'nuanyangyang': '测试与质量门禁',
-        'pmo': '项目管理与里程碑推进',
-        'sre-release': '发布稳定性与回滚',
-        'xiaohuihui': '工具链/硬件与自动化',
-        'xiyangyang': '运营与流程协同',
-        'main': '主会话调度与执行',
-    }
-
-    agents = []
     for a in cfg.get('agents', {}).get('list', []):
-        aid = a.get('id')
+        aid = str(a.get('id') or '').strip()
         if not aid:
             continue
-        if aid == 'main':
-            name = '蛋蛋'
-        else:
-            name = a.get('identity', {}).get('name') or aid
-        workspace = a.get('workspace') or '/Users/brianzhibo/openclaw'
-        duty = duties.get(aid, '未定义职责')
-        agents.append((aid, name, workspace, duty))
+        out.append({
+            'agent_id': aid,
+            'owner_cn': str(a.get('identity', {}).get('name') or aid),
+            'duty': '未定义职责',
+            'repo_path': str(a.get('workspace') or ROOT),
+        })
+    return out
 
+
+def build_realtime_tasks() -> list[dict]:
+    now = NOW()
+    now_iso = now.isoformat(timespec='seconds')
+    members = load_team_members()
     active_hint = latest_active_from_main()
 
     tasks = []
-    for aid, name, workspace, duty in agents:
+    for m in members:
+        aid = m['agent_id']
+        name = m['owner_cn']
+        duty = m['duty']
+        workspace = m['repo_path']
+
         rt = agent_runtime(aid, active_hint)
         upd = int(rt.get('updatedAt', 0) or 0)
         dt = datetime.fromtimestamp(upd / 1000, tz=TZ).isoformat(timespec='seconds') if upd else now_iso
@@ -398,12 +411,11 @@ def load_ledger_tasks() -> list[dict]:
 
 
 def merge_tasks(realtime_tasks: list[dict], ledger_tasks: list[dict]) -> list[dict]:
-    if not ledger_tasks:
-        return realtime_tasks
-
-    ledger_agents = {str(t.get('agent_id') or '').strip() for t in ledger_tasks if t.get('agent_id')}
-    kept_live = [t for t in realtime_tasks if str(t.get('agent_id') or '').strip() not in ledger_agents]
-    return [*ledger_tasks, *kept_live]
+    # 同时保留：
+    # - ledger 业务任务（计划层）
+    # - LIVE-* 在线态任务（执行层）
+    # 这样可稳定展示“多 Agent 同时工作”的全貌。
+    return [*ledger_tasks, *realtime_tasks] if ledger_tasks else realtime_tasks
 
 
 def main():

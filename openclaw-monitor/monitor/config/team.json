@@ -1,0 +1,42 @@
+{
+  "team_name": "Olympus Multi-Agent Squad",
+  "version": "1.0",
+  "members": [
+    {
+      "agent_id": "zeus",
+      "owner_cn": "Zeus",
+      "duty": "总指挥与优先级裁决",
+      "repo_path": "/Users/peterzhang/.openclaw/workspace"
+    },
+    {
+      "agent_id": "athena",
+      "owner_cn": "Athena",
+      "duty": "架构设计与技术评审",
+      "repo_path": "/Users/peterzhang/.openclaw/workspace"
+    },
+    {
+      "agent_id": "hephaestus",
+      "owner_cn": "Hephaestus",
+      "duty": "核心开发与重构实现",
+      "repo_path": "/Users/peterzhang/.openclaw/workspace"
+    },
+    {
+      "agent_id": "apollo",
+      "owner_cn": "Apollo",
+      "duty": "测试、质量门禁与验收",
+      "repo_path": "/Users/peterzhang/.openclaw/workspace"
+    },
+    {
+      "agent_id": "hermes",
+      "owner_cn": "Hermes",
+      "duty": "任务调度、消息同步、状态广播",
+      "repo_path": "/Users/peterzhang/.openclaw/workspace"
+    },
+    {
+      "agent_id": "artemis",
+      "owner_cn": "Artemis",
+      "duty": "发布、回滚与运行稳定性",
+      "repo_path": "/Users/peterzhang/.openclaw/workspace"
+    }
+  ]
+}

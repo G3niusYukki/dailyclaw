@@ -59,6 +59,12 @@ cd <package-or-workspace-root>
 ./stop_monitor.sh
 ```
 
+### 一键重启
+```bash
+cd <package-or-workspace-root>
+./restart_monitor.sh
+```
+
 > 建议在另一个终端定时执行刷新脚本，保证 `code_changes.json` 持续更新。
 
 例如：

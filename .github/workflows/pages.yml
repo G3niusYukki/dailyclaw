@@ -24,37 +24,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      
       - name: Build site
         run: |
           mkdir -p _site
           cp README.md _site/index.md
-          cp -r docs _site/
-          cp -r showcase _site/
-          cp -r evolution _site/
-          # 创建一个简单的首页
+          cp -r docs _site/ 2>/dev/null || echo "No docs to copy"
+          cp -r showcase _site/ 2>/dev/null || echo "No showcase to copy"
+          cp -r evolution _site/ 2>/dev/null || echo "No evolution to copy"
+          # 创建首页
           cat > _site/index.html << 'HTML'
           <!DOCTYPE html>
           <html>
           <head>
             <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>DailyClaw - AI Agent Evolution</title>
             <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px 20px; line-height: 1.6; }
+              * { box-sizing: border-box; }
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px 20px; line-height: 1.6; color: #333; }
               h1 { color: #333; border-bottom: 2px solid #f97316; padding-bottom: 10px; }
               h2 { color: #555; margin-top: 30px; }
-              .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-right: 8px; }
+              .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-right: 8px; margin-bottom: 8px; }
               .badge-orange { background: #f97316; color: white; }
               .badge-blue { background: #3b82f6; color: white; }
               .badge-green { background: #10b981; color: white; }
               a { color: #f97316; text-decoration: none; }
               a:hover { text-decoration: underline; }
               .section { margin: 30px 0; padding: 20px; background: #f9fafb; border-radius: 8px; }
-              .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
-              .cat-card { padding: 15px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-              .cat-emoji { font-size: 24px; }
+              .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+              .cat-card { padding: 15px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
+              .cat-emoji { font-size: 24px; display: block; margin-bottom: 5px; }
+              @media (max-width: 600px) { body { padding: 20px 15px; } .cat-grid { grid-template-columns: repeat(2, 1fr); } }
             </style>
           </head>
           <body>
@@ -65,6 +65,7 @@ jobs:
               <span class="badge badge-orange">🤖 Multi-Agent</span>
               <span class="badge badge-blue">🌐 Bilingual</span>
               <span class="badge badge-green">📅 Daily Evolution</span>
+              <span class="badge badge-orange">⚡ Automation</span>
             </div>
             
             <div class="section">
@@ -86,6 +87,7 @@ jobs:
                 <li>📊 <a href="https://github.com/G3niusYukki/dailyclaw/blob/master/PROGRESS.md">项目进度</a></li>
                 <li>📅 <a href="./evolution/">进化记录</a></li>
                 <li>🎪 <a href="./showcase/">成果展示</a></li>
+                <li>📚 <a href="./docs/">文档</a></li>
               </ul>
             </div>
             
@@ -93,6 +95,7 @@ jobs:
           </body>
           </html>
           HTML
+          echo "✅ Site built successfully"
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -102,3 +105,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          preview: false
